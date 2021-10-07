@@ -3,23 +3,21 @@ import requests
 import csv
 
 # GitHub Authentication function
-def github_auth(url, lsttoken, ct):
+def github_auth(url, token):
     jsonData = None
     try:
-        ct = ct % len(lstTokens)
-        headers = {'Authorization': 'Bearer {}'.format(lsttoken[ct])}
+        headers = {'Authorization': 'Bearer {}'.format(token)}
         request = requests.get(url, headers=headers)
         jsonData = json.loads(request.content)
-        ct += 1
     except Exception as e:
         pass
         print(e)
-    return jsonData, ct
+    return jsonData
 
 # @dictFiles, empty dictionary of files
 # @lstTokens, GitHub authentication tokens
 # @repo, GitHub repo
-def countfiles(dictfiles, lsttokens, repo):
+def countfiles(dictfiles, token, repo):
     ipage = 1  # url page counter
     ct = 0  # token counter
 
@@ -28,7 +26,7 @@ def countfiles(dictfiles, lsttokens, repo):
         while True:
             spage = str(ipage)
             commitsUrl = 'https://api.github.com/repos/' + repo + '/commits?page=' + spage + '&per_page=100'
-            jsonCommits, ct = github_auth(commitsUrl, lsttokens, ct)
+            jsonCommits = github_auth(commitsUrl, token)
 
             # break out of the while loop if there are no more commits in the pages
             if len(jsonCommits) == 0:
@@ -38,7 +36,7 @@ def countfiles(dictfiles, lsttokens, repo):
                 sha = shaObject['sha']
                 # For each commit, use the GitHub commit API to extract the files touched by the commit
                 shaUrl = 'https://api.github.com/repos/' + repo + '/commits/' + sha
-                shaDetails, ct = github_auth(shaUrl, lsttokens, ct)
+                shaDetails = github_auth(shaUrl, token)
                 filesjson = shaDetails['files']
                 for filenameObj in filesjson:
                     filename = filenameObj['filename']
@@ -55,14 +53,14 @@ repo = 'scottyab/rootbeer'
 # repo = 'mendhak/gpslogger'
 
 
-# put your tokens here
+# put your token here
 # Remember to empty the list when going to commit to GitHub.
 # Otherwise they will all be reverted and you will have to re-create them
 # I would advise to create more than one token for repos with heavy commits
-lstTokens = ["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"]
+token = ""
 
 dictfiles = dict()
-countfiles(dictfiles, lstTokens, repo)
+countfiles(dictfiles, token, repo)
 
 print('Total number of files: ' + str(len(dictfiles)))
 
